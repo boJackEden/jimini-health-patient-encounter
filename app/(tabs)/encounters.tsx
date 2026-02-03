@@ -7,6 +7,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { EncounterCard } from '@/components/encounters/EncounterCard';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -21,6 +22,7 @@ import {
 import { Encounter } from '@/types/encounters';
 
 export default function EncountersScreen() {
+  const router = useRouter();
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
 
@@ -45,9 +47,8 @@ export default function EncountersScreen() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleEncounterPress = useCallback((encounter: Encounter) => {
-    // TODO: Navigate to encounter detail
-    console.log('Encounter pressed:', encounter.id);
-  }, []);
+    router.push(`/encounter/${encounter.id}`);
+  }, [router]);
 
   const renderItem = useCallback(
     ({ item }: { item: Encounter }) => (
