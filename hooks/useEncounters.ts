@@ -9,7 +9,7 @@ import {
   useQuery,
   useInfiniteQuery,
   UseQueryResult,
-  UseInfiniteQueryResult,
+  InfiniteData,
 } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import {
@@ -54,7 +54,7 @@ export const encounterKeys = {
  */
 export function useEncountersInfinite(
   params: Omit<EncountersQueryParams, 'page'> = {}
-): UseInfiniteQueryResult<EncountersListResponse, Error> {
+) {
   return useInfiniteQuery({
     queryKey: encounterKeys.list(params),
     queryFn: ({ pageParam = 1 }) =>
@@ -113,7 +113,7 @@ export type FlattenedEncounters = {
  * Helper function to flatten infinite query pages into a single array
  */
 export function flattenEncounterPages(
-  data: { pages: EncountersListResponse[] } | undefined
+  data: InfiniteData<EncountersListResponse> | undefined
 ): FlattenedEncounters {
   if (!data?.pages.length) {
     return { encounters: [], total: 0, hasMore: false };
