@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 
 import { EncounterCard } from '@/components/encounters/EncounterCard';
+import { OfflineBanner } from '@/components/OfflineBanner';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -19,12 +20,14 @@ import {
   useEncountersInfinite,
   flattenEncounterPages,
 } from '@/hooks/useEncounters';
+import { OfflineError } from '@/lib/networkState';
 import { Encounter } from '@/types/encounters';
 
 export default function EncountersScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const {
     data,
@@ -39,6 +42,19 @@ export default function EncountersScreen() {
   } = useEncountersInfinite();
 
   const { encounters, total } = flattenEncounterPages(data);
+
+  // Check if error is an offline error
+  const isOfflineError = error instanceof OfflineError;
+  // We have cached data if encounters array has items
+  const hasCachedData = encounters.length > 0;
+  // Show offline banner when offline with cached data, unless dismissed
+  const shouldShowOfflineBanner = isOfflineError && hasCachedData && !bannerDismissed;
+
+  // Reset dismissed state when we successfully load data (no error)
+  const handleRefresh = useCallback(() => {
+    setBannerDismissed(false);
+    refetch();
+  }, [refetch]);
 
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -100,8 +116,9 @@ export default function EncountersScreen() {
     );
   }
 
-  // Error state
-  if (isError) {
+  // Error state - only show full error if we don't have cached data
+  // If offline with cached data, we'll show the banner instead
+  if (isError && !hasCachedData) {
     return (
       <ThemedView style={styles.centerContainer}>
         <IconSymbol
@@ -110,10 +127,12 @@ export default function EncountersScreen() {
           color={colors.error}
         />
         <ThemedText style={[styles.errorTitle, { color: colors.text }]}>
-          Failed to Load
+          {isOfflineError ? 'You\'re Offline' : 'Failed to Load'}
         </ThemedText>
         <ThemedText style={[styles.errorMessage, { color: colors.textSecondary }]}>
-          {error?.message || 'An unexpected error occurred'}
+          {isOfflineError
+            ? 'Please check your internet connection and try again.'
+            : error?.message || 'An unexpected error occurred'}
         </ThemedText>
         <Pressable
           onPress={() => refetch()}
@@ -133,6 +152,10 @@ export default function EncountersScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      {shouldShowOfflineBanner && (
+        <OfflineBanner onDismiss={() => setBannerDismissed(true)} />
+      )}
+
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <ThemedText type="title" style={styles.title}>
           Encounters
@@ -154,7 +177,7 @@ export default function EncountersScreen() {
         refreshControl={
           <RefreshControl
             refreshing={isRefetching && !isFetchingNextPage}
-            onRefresh={refetch}
+            onRefresh={handleRefresh}
             tintColor={colors.primary}
             colors={[colors.primary]}
           />

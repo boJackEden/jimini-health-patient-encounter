@@ -122,7 +122,10 @@ export async function fetchEncounters(
 
     return result;
   } catch (error) {
-    logger.error('Failed to fetch encounters', error, { page, pageSize });
+    // Don't log offline errors as errors - they're expected when testing offline mode
+    if (!(error instanceof OfflineError)) {
+      logger.error('Failed to fetch encounters', error, { page, pageSize });
+    }
     throw error;
   }
 }
@@ -156,7 +159,10 @@ export async function fetchEncounterById(
 
     return encounter;
   } catch (error) {
-    logger.error('Failed to fetch encounter', error, { encounterId: id });
+    // Don't log offline errors as errors - they're expected when testing offline mode
+    if (!(error instanceof OfflineError)) {
+      logger.error('Failed to fetch encounter', error, { encounterId: id });
+    }
     throw error;
   }
 }

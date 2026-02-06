@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Switch, View, Pressable } from 'react-native';
+import { ScrollView, StyleSheet, Switch, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/themed-text';
@@ -32,44 +32,10 @@ function SettingsRow({ label, description, colors, children }: SettingsRowProps)
   );
 }
 
-interface ThemeOptionProps {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-  colors: ThemeColors;
-}
-
-function ThemeOption({ label, selected, onPress, colors }: ThemeOptionProps) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[
-        styles.themeOption,
-        {
-          backgroundColor: selected ? colors.primary : colors.card,
-          borderColor: selected ? colors.primary : colors.border,
-        },
-      ]}
-    >
-      <ThemedText
-        style={[
-          styles.themeOptionText,
-          { color: selected ? '#FFFFFF' : colors.text },
-        ]}
-      >
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
-}
-
 export default function SettingsScreen() {
-  const systemColorScheme = useColorScheme() ?? 'light';
-  const { themeMode, isOfflineMode, setThemeMode, setOfflineMode } = useAppSettings();
-
-  // Use theme override if set, otherwise use system
-  const effectiveColorScheme = themeMode === 'system' ? systemColorScheme : themeMode;
-  const colors = Colors[effectiveColorScheme];
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
+  const { isOfflineMode, setOfflineMode } = useAppSettings();
 
   return (
     <ThemedView style={styles.container}>
@@ -83,42 +49,6 @@ export default function SettingsScreen() {
           <ThemedText type="title" style={styles.title}>
             Settings
           </ThemedText>
-        </View>
-
-        {/* Appearance Section */}
-        <View style={styles.section}>
-          <ThemedText style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-            Appearance
-          </ThemedText>
-
-          <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <SettingsRow
-              label="Theme"
-              description="Choose your preferred color scheme"
-              colors={colors}
-            >
-              <View style={styles.themeOptions}>
-                <ThemeOption
-                  label="System"
-                  selected={themeMode === 'system'}
-                  onPress={() => setThemeMode('system')}
-                  colors={colors}
-                />
-                <ThemeOption
-                  label="Light"
-                  selected={themeMode === 'light'}
-                  onPress={() => setThemeMode('light')}
-                  colors={colors}
-                />
-                <ThemeOption
-                  label="Dark"
-                  selected={themeMode === 'dark'}
-                  onPress={() => setThemeMode('dark')}
-                  colors={colors}
-                />
-              </View>
-            </SettingsRow>
-          </View>
         </View>
 
         {/* Debug Section */}
@@ -231,20 +161,6 @@ const styles = StyleSheet.create({
   settingsDescription: {
     fontSize: 13,
     marginTop: 2,
-  },
-  themeOptions: {
-    flexDirection: 'row',
-    gap: Spacing.xs,
-  },
-  themeOption: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-  },
-  themeOptionText: {
-    fontSize: 13,
-    fontWeight: '500',
   },
   warningCard: {
     flexDirection: 'row',
