@@ -1,50 +1,92 @@
-# Welcome to your Expo app 👋
+# Jimini Health Patient Encounter
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native take-home assignment for Jimini Health, demonstrating a patient encounter list with API integration.
 
-## Get started
+## Getting Started
 
-1. Install dependencies
-
+1. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the app
-
+2. Start the Metro bundler:
    ```bash
-   npx expo start
+   npm run start
    ```
 
-In the output, you'll find options to open the app in a
+3. Run the app:
+   - Press `i` for iOS Simulator
+   - Press `a` for Android Emulator
+   - Scan the QR code with the Expo Go app on your phone
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Running Tests
 
 ```bash
-npm run reset-project
+npm test
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Assignment Requirements
 
-## Learn more
+### API Integration
+- [x] GET /api/encounters with pagination support
+- [x] GET /api/encounters/:id for encounter details
+- [x] Mock API implementation
+- [x] Abstracted API calls for testability
 
-To learn more about developing your project with Expo, look at the following resources:
+### UI Requirements - List Screen
+- [x] Display encounters in a scrollable list
+- [x] Show: patient initials, date, encounter type, status
+- [x] Pull-to-refresh
+- [x] Infinite scroll pagination
+- [x] Empty state when no encounters
+- [x] Loading states (initial load, pagination, refresh)
+- [x] Error state with retry capability
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### UI Requirements - Detail View
+- [x] Show full encounter details including assessments
+- [x] Navigate back to list
+- [x] Maintain scroll position when returning to list
 
-## Join the community
+### Performance & Optimization
+- [x] Efficient rendering with virtualization (FlatList)
+- [x] Smart caching (React Query - don't refetch unnecessarily)
+- [x] Network resilience with retry and error feedback
 
-Join our community of developers creating universal apps.
+### PHI/PII Handling
+- [x] Never log patient IDs or clinical notes to console
+- [x] Use initials in UI, not full names
+- [x] Logging utility that redacts sensitive fields
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Testing
+- [x] Component rendering with data
+- [x] Loading and error states
+- [x] User interactions (pull-to-refresh, pagination)
+- [x] Data transformation/formatting
+
+## Explanations
+
+### State Management Strategy
+
+I chose **TanStack Query (React Query)** as the primary state management solution for this app. Here's why:
+
+**Why React Query for Server State:**
+- **Purpose-built for async data**: React Query handles fetching, caching, synchronizing, and updating server state out of the box
+- **Smart caching**: Data remains fresh for 30 seconds (`staleTime`), preventing unnecessary refetches when navigating between screens
+- **Automatic background refetching**: Stale data is shown immediately while fresh data loads in the background
+- **Built-in retry logic**: Exponential backoff (1s, 2s, 4s) for failed requests with smart error handling (no retry on 4xx errors)
+- **Pagination support**: `useInfiniteQuery` handles infinite scroll with cursor-based pagination seamlessly
+
+**Why not Redux/Zustand for this app:**
+- The app is primarily displaying server data (encounters list and details)
+- There's minimal client-side state that needs to be shared globally
+- Adding Redux would introduce unnecessary complexity and boilerplate
+- React Query already provides the caching and synchronization this app needs
+
+**Client State Approach:**
+- React Context (`AppSettingsContext`) for app-wide settings (theme, debug options)
+- Local component state for UI-specific state (scroll position, input values)
+- This separation keeps the codebase simple and avoids over-engineering
+
+**Future Considerations:**
+- For offline-first support, React Query can be extended with `persistQueryClient` to cache data to AsyncStorage
+- If the app grew to need complex client state (filters, multi-step forms), Zustand would be a lightweight addition

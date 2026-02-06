@@ -1,112 +1,275 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, Switch, View, Pressable } from 'react-native';
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+import { Colors, Spacing, BorderRadius } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppSettings } from '@/contexts/AppSettingsContext';
 
-export default function TabTwoScreen() {
+type ThemeColors = (typeof Colors)['light'] | (typeof Colors)['dark'];
+
+interface SettingsRowProps {
+  label: string;
+  description?: string;
+  colors: ThemeColors;
+  children: React.ReactNode;
+}
+
+function SettingsRow({ label, description, colors, children }: SettingsRowProps) {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <View style={[styles.settingsRow, { borderBottomColor: colors.border }]}>
+      <View style={styles.settingsRowText}>
+        <ThemedText style={styles.settingsLabel}>{label}</ThemedText>
+        {description && (
+          <ThemedText style={[styles.settingsDescription, { color: colors.textSecondary }]}>
+            {description}
+          </ThemedText>
+        )}
+      </View>
+      {children}
+    </View>
+  );
+}
+
+interface ThemeOptionProps {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  colors: ThemeColors;
+}
+
+function ThemeOption({ label, selected, onPress, colors }: ThemeOptionProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.themeOption,
+        {
+          backgroundColor: selected ? colors.primary : colors.card,
+          borderColor: selected ? colors.primary : colors.border,
+        },
+      ]}
+    >
+      <ThemedText
+        style={[
+          styles.themeOptionText,
+          { color: selected ? '#FFFFFF' : colors.text },
+        ]}
+      >
+        {label}
+      </ThemedText>
+    </Pressable>
+  );
+}
+
+export default function SettingsScreen() {
+  const systemColorScheme = useColorScheme() ?? 'light';
+  const { themeMode, isOfflineMode, setThemeMode, setOfflineMode } = useAppSettings();
+
+  // Use theme override if set, otherwise use system
+  const effectiveColorScheme = themeMode === 'system' ? systemColorScheme : themeMode;
+  const colors = Colors[effectiveColorScheme];
+
+  return (
+    <ThemedView style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <ThemedText type="title" style={styles.title}>
+            Settings
+          </ThemedText>
+        </View>
+
+        {/* Appearance Section */}
+        <View style={styles.section}>
+          <ThemedText style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            Appearance
+          </ThemedText>
+
+          <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <SettingsRow
+              label="Theme"
+              description="Choose your preferred color scheme"
+              colors={colors}
+            >
+              <View style={styles.themeOptions}>
+                <ThemeOption
+                  label="System"
+                  selected={themeMode === 'system'}
+                  onPress={() => setThemeMode('system')}
+                  colors={colors}
+                />
+                <ThemeOption
+                  label="Light"
+                  selected={themeMode === 'light'}
+                  onPress={() => setThemeMode('light')}
+                  colors={colors}
+                />
+                <ThemeOption
+                  label="Dark"
+                  selected={themeMode === 'dark'}
+                  onPress={() => setThemeMode('dark')}
+                  colors={colors}
+                />
+              </View>
+            </SettingsRow>
+          </View>
+        </View>
+
+        {/* Debug Section */}
+        <View style={styles.section}>
+          <ThemedText style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            Debug Options
+          </ThemedText>
+
+          <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <SettingsRow
+              label="Simulate Offline Mode"
+              description="Test how the app handles network failures"
+              colors={colors}
+            >
+              <Switch
+                value={isOfflineMode}
+                onValueChange={setOfflineMode}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor="#FFFFFF"
+              />
+            </SettingsRow>
+          </View>
+
+          {isOfflineMode && (
+            <View style={[styles.warningCard, { backgroundColor: colors.error + '15' }]}>
+              <IconSymbol name="exclamationmark.triangle" size={20} color={colors.error} />
+              <ThemedText style={[styles.warningText, { color: colors.error }]}>
+                Offline mode is active. API requests will fail.
+              </ThemedText>
+            </View>
+          )}
+        </View>
+
+        {/* Info Section */}
+        <View style={styles.section}>
+          <ThemedText style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            About
+          </ThemedText>
+
+          <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.infoRow}>
+              <ThemedText style={[styles.infoLabel, { color: colors.textSecondary }]}>
+                Version
+              </ThemedText>
+              <ThemedText style={styles.infoValue}>1.0.0</ThemedText>
+            </View>
+            <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
+              <ThemedText style={[styles.infoLabel, { color: colors.textSecondary }]}>
+                Build
+              </ThemedText>
+              <ThemedText style={styles.infoValue}>Take-home Assignment</ThemedText>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
   },
-  titleContainer: {
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: Spacing.md,
+    paddingBottom: Spacing.xxl,
+  },
+  header: {
+    paddingTop: Spacing.xxl,
+    paddingBottom: Spacing.lg,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+  },
+  section: {
+    marginBottom: Spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: Spacing.sm,
+    marginLeft: Spacing.xs,
+  },
+  sectionCard: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  settingsRow: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+  },
+  settingsRowText: {
+    flex: 1,
+    marginRight: Spacing.md,
+  },
+  settingsLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  settingsDescription: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  themeOptions: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+  },
+  themeOption: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+  },
+  themeOptionText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  warningCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  warningText: {
+    fontSize: 14,
+    flex: 1,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: 'transparent',
+  },
+  infoLabel: {
+    fontSize: 15,
+  },
+  infoValue: {
+    fontSize: 15,
+    fontWeight: '500',
   },
 });

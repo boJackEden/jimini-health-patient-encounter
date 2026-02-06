@@ -21,6 +21,7 @@ const MAPPING = {
   'list.bullet.clipboard': 'assignment',
   'exclamationmark.triangle': 'warning',
   'arrow.clockwise': 'refresh',
+  'gearshape.fill': 'settings',
 } as IconMapping;
 
 /**

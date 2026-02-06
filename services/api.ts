@@ -21,6 +21,7 @@ import {
   getPaginatedEncounters,
   getEncounterById,
 } from '@/data/mockEncounters';
+import { getIsOfflineMode, OfflineError } from '@/lib/networkState';
 import logger from '@/utils/logger';
 
 // Configuration for simulated network behavior
@@ -64,6 +65,15 @@ async function simulateNetworkDelay(): Promise<void> {
 }
 
 /**
+ * Check if offline mode is enabled and throw if so
+ */
+function checkOfflineMode(): void {
+  if (getIsOfflineMode()) {
+    throw new OfflineError();
+  }
+}
+
+/**
  * Simulate potential network failure
  */
 function maybeThrowError(): void {
@@ -99,6 +109,7 @@ export async function fetchEncounters(
   logger.apiRequest('GET', '/api/encounters', { page, pageSize });
 
   try {
+    checkOfflineMode();
     await simulateNetworkDelay();
     maybeThrowError();
 
@@ -127,6 +138,7 @@ export async function fetchEncounterById(
   logger.apiRequest('GET', `/api/encounters/${id}`);
 
   try {
+    checkOfflineMode();
     await simulateNetworkDelay();
     maybeThrowError();
 
