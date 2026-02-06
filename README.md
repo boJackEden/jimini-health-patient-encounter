@@ -1,92 +1,88 @@
 # Jimini Health Patient Encounter
 
-A React Native take-home assignment for Jimini Health, demonstrating a patient encounter list with API integration.
+A React Native take-home assignment demonstrating a patient encounter list with API integration.
 
-## Getting Started
+## Setup & Running
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+### Install Dependencies
+```bash
+npm install
+```
 
-2. Start the Metro bundler:
-   ```bash
-   npm run start
-   ```
+### Run the App
+```bash
+npm run start
+```
+- Press `i` for iOS Simulator
+- Press `a` for Android Emulator
+- Scan the QR code with the Expo Go app on your phone
 
-3. Run the app:
-   - Press `i` for iOS Simulator
-   - Press `a` for Android Emulator
-   - Scan the QR code with the Expo Go app on your phone
-
-## Running Tests
-
+### Run Tests
 ```bash
 npm test
 ```
 
-## Assignment Requirements
+## Tech Stack Choices
 
-### API Integration
-- [x] GET /api/encounters with pagination support
-- [x] GET /api/encounters/:id for encounter details
-- [x] Mock API implementation
-- [x] Abstracted API calls for testability
+**Platform**: React Native with Expo. Expo simplifies the build process and lets reviewers run the app easily via Expo Go without needing Xcode/Android Studio fully configured.
 
-### UI Requirements - List Screen
-- [x] Display encounters in a scrollable list
-- [x] Show: patient initials, date, encounter type, status
-- [x] Pull-to-refresh
-- [x] Infinite scroll pagination
-- [x] Empty state when no encounters
-- [x] Loading states (initial load, pagination, refresh)
-- [x] Error state with retry capability
+**Key Libraries**:
+- **TanStack Query (React Query)**: Handles caching, background refetching, and pagination out of the box. Redux felt like overkill since we're mostly just displaying server data.
+- **Expo Router**: File-based routing that mirrors Next.js patterns. Makes navigation predictable and easy to follow.
 
-### UI Requirements - Detail View
-- [x] Show full encounter details including assessments
-- [x] Navigate back to list
-- [x] Maintain scroll position when returning to list
+**State Management**: TanStack Query for server state, React Context for the small amount of client state (like the offline mode toggle).
 
-### Performance & Optimization
-- [x] Efficient rendering with virtualization (FlatList)
-- [x] Smart caching (React Query - don't refetch unnecessarily)
-- [x] Network resilience with retry and error feedback
+## Design Decisions
 
-### PHI/PII Handling
-- [x] Never log patient IDs or clinical notes to console
-- [x] Use initials in UI, not full names
-- [x] Logging utility that redacts sensitive fields
+**Architecture**: The API service layer (`services/api.ts`) is completely separate from React. This makes it testable in isolation and easy to swap out the mock implementation for a real API later.
 
-### Testing
-- [x] Component rendering with data
-- [x] Loading and error states
-- [x] User interactions (pull-to-refresh, pagination)
-- [x] Data transformation/formatting
+**Offline Mode Simulator**: I added an offline mode toggle in Settings to make it easy to test error handling. When enabled, API calls fail immediately and the app shows either a full error screen (if there's no cached data) or a dismissible banner at the bottom (if we can still show stale data). I thought this was the clearest way to demonstrate graceful degradation without needing to actually disconnect from the network.
 
-## Explanations
+**Trade-offs**:
+- Used a mock API instead of a real backend to keep the assignment self-contained
+- Chose infinite scroll over traditional pagination for better mobile UX
+- Kept the component structure flat rather than over-abstracting for a small app
 
-### State Management Strategy
+**For Production I'd Add**:
+- Filtering & sorting UI (the data layer already supports it)
+- Real API integration with proper auth
+- More comprehensive error boundaries
+- Analytics/crash reporting
 
-I chose **TanStack Query (React Query)** as the primary state management solution for this app. Here's why:
+## PHI/PII Handling
 
-**Why React Query for Server State:**
-- **Purpose-built for async data**: React Query handles fetching, caching, synchronizing, and updating server state out of the box
-- **Smart caching**: Data remains fresh for 30 seconds (`staleTime`), preventing unnecessary refetches when navigating between screens
-- **Automatic background refetching**: Stale data is shown immediately while fresh data loads in the background
-- **Built-in retry logic**: Exponential backoff (1s, 2s, 4s) for failed requests with smart error handling (no retry on 4xx errors)
-- **Pagination support**: `useInfiniteQuery` handles infinite scroll with cursor-based pagination seamlessly
+**UI Protection**: Only patient initials are shown in the UI, never full names or patient IDs. Clinical notes are only visible in the detail view, not in list cards.
 
-**Why not Redux/Zustand for this app:**
-- The app is primarily displaying server data (encounters list and details)
-- There's minimal client-side state that needs to be shared globally
-- Adding Redux would introduce unnecessary complexity and boilerplate
-- React Query already provides the caching and synchronization this app needs
+**Logging Strategy**: The logger utility automatically strips sensitive fields like `patientId`, `notes`, `assessments`, and anything with "patient" in the key name. This way we can still debug API calls and errors without accidentally leaking PHI to the console. It's a simple allowlist approach - log the metadata, redact the clinical data.
 
-**Client State Approach:**
-- React Context (`AppSettingsContext`) for app-wide settings (theme, debug options)
-- Local component state for UI-specific state (scroll position, input values)
-- This separation keeps the codebase simple and avoids over-engineering
+**Security Considerations**: In production, I'd add encryption at rest for any cached data, ensure HTTPS for all API calls, and implement proper session management with token refresh.
 
-**Future Considerations:**
-- For offline-first support, React Query can be extended with `persistQueryClient` to cache data to AsyncStorage
-- If the app grew to need complex client state (filters, multi-step forms), Zustand would be a lightweight addition
+## Testing Philosophy
+
+See [TESTING.md](./TESTING.md) for detailed documentation on what I tested, why, and how I made the codebase testable.
+
+**Run tests**: `npm test`
+
+**What I'd Add With More Time**:
+- Integration tests that verify the full flow from API call through to rendered UI
+- Accessibility testing for screen readers and touch targets
+- E2E tests with Detox for critical user journeys
+- Container/presenter pattern for screens - separate navigation logic from the UI so the presentational component just receives props, making it testable without mocking Expo Router
+
+## Time Breakdown
+
+**Hour 1**: Built out the data layer and got the app running from the Expo boilerplate. This included the mock API, pagination logic, and basic list/detail screens.
+
+**Hour 2**: Focused on testing and polish. Wrote unit tests for the critical paths (PHI redaction, component rendering, API behavior), implemented the offline mode simulator, and documented the state management approach in the README. I considered adding Zustand or Redux but decided React Query already handled everything I needed - no point adding complexity.
+
+**~30 min**: Tested on both iOS and Android simulators, recorded the demo videos, and did a final pass through the instructions to make sure I hadn't missed anything.
+
+## Screen Recordings
+
+### iOS (iPhone 14 Pro)
+
+https://github.com/user-attachments/assets/8b5a0833-4f4e-49f2-b6f7-cee789a2c33b
+
+### Android (Pixel 7)
+
+https://github.com/user-attachments/assets/3ee88d90-5b99-4517-ba7a-cd4f1972b6e8

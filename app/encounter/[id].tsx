@@ -141,7 +141,6 @@ export default function EncounterDetailScreen() {
       <Stack.Screen
         options={{
           title: ENCOUNTER_TYPE_LABELS[encounter.encounterType],
-          headerBackTitle: 'Encounters',
         }}
       />
 

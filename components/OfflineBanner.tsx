@@ -1,9 +1,8 @@
 import { Pressable, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/themed-text';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 interface OfflineBannerProps {
@@ -13,10 +12,9 @@ interface OfflineBannerProps {
 export function OfflineBanner({ onDismiss }: OfflineBannerProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
-  const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.wrapper, { bottom: insets.bottom + 80 }]}>
+    <View style={[styles.wrapper, { bottom: 16 }]}>
       <View style={[styles.container, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={styles.content}>
           <View style={[styles.iconContainer, { backgroundColor: colors.warning }]}>
@@ -24,7 +22,7 @@ export function OfflineBanner({ onDismiss }: OfflineBannerProps) {
           </View>
           <View style={styles.textContainer}>
             <ThemedText style={[styles.title, { color: colors.text }]}>
-              You're Offline
+              You&apos;re Offline
             </ThemedText>
             <ThemedText style={[styles.subtitle, { color: colors.textSecondary }]}>
               Showing cached data
@@ -51,8 +49,8 @@ export function OfflineBanner({ onDismiss }: OfflineBannerProps) {
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    left: Spacing.md,
-    right: Spacing.md,
+    left: Spacing.xl,
+    right: Spacing.xl,
     zIndex: 1000,
   },
   container: {

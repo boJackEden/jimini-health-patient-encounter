@@ -20,6 +20,7 @@ export const BrandColors = {
   // Energetic/optimistic - lime yellow
   eager: '#F9FFAD',
   eagerDark: '#E5EB7A',
+  eagerText: '#9A8200', // Darker amber for readable text
 
   // Primary brand blue
   calm: '#1451E2',
@@ -78,7 +79,7 @@ export const Colors = {
     // Encounter status colors
     statusCompleted: BrandColors.safety,
     statusScheduled: BrandColors.calm,
-    statusInProgress: BrandColors.eager,
+    statusInProgress: BrandColors.eagerText,
     statusCancelled: BrandColors.grey,
     statusNoShow: BrandColors.fearLight,
   },
@@ -112,7 +113,7 @@ export const Colors = {
     // Encounter status colors
     statusCompleted: BrandColors.safetyLight,
     statusScheduled: BrandColors.calmLight,
-    statusInProgress: BrandColors.eager,
+    statusInProgress: BrandColors.eagerDark,
     statusCancelled: '#9BA1A6',
     statusNoShow: '#E85454',
   },
